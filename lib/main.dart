@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meals/features/Categories/categories_bloc.dart';
+import 'package:meals/features/Tab/tab_bloc.dart';
+import 'package:meals/features/tab/favorite/favorite_bloc.dart';
+import 'package:meals/features/tab/filter/filter_bloc.dart';
 import 'package:meals/screens/tabs.dart';
 
 final theme = ThemeData(
@@ -23,7 +28,14 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: theme,
-      home: const TabsScreen(),
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => TabBloc()),
+          BlocProvider(create: (context) => FavoriteBloc()),
+          BlocProvider(create: (context) => FilterBloc()),
+          BlocProvider(create: (context) => CategoriesBloc()),
+        ],
+        child: const TabsScreen()),
     );
   }
 }
