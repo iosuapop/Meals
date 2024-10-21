@@ -1,11 +1,5 @@
-import 'package:equatable/equatable.dart';
+class TabState {
+  final int selectedTabIndex;
 
-class TabState extends Equatable{
-  final int selectedIndex;
-
-  const TabState({required this.selectedIndex});
-
-  @override
-  List<Object?> get props => [selectedIndex];
+  const TabState({this.selectedTabIndex = 0});
 }
-

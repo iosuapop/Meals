@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meals/features/Categories/categories_bloc.dart';
-import 'package:meals/features/Tab/tab_bloc.dart';
-import 'package:meals/features/tab/favorite/favorite_bloc.dart';
-import 'package:meals/features/tab/filter/filter_bloc.dart';
+import 'package:meals/features/categories/categories_bloc.dart';
+import 'package:meals/features/categories/categories_event.dart';
+import 'package:meals/features/favorite/favorite_bloc.dart';
+import 'package:meals/features/filter/filter_bloc.dart';
+import 'package:meals/features/filteredmeals/filteredmeals_bloc.dart';
+import 'package:meals/features/meals/meals_bloc.dart';
+import 'package:meals/features/meals/meals_event.dart';
+import 'package:meals/features/tab/tab_bloc.dart';
 import 'package:meals/screens/tabs.dart';
 
 final theme = ThemeData(
@@ -18,7 +21,16 @@ final theme = ThemeData(
 );
 
 void main() {
-  runApp(const App());
+  runApp(MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => MealBloc()..add(const LoadMeals())),
+          BlocProvider(create: (context) => FiltersBloc()),
+          BlocProvider(create: (context) => CategoryBloc()..add(const LoadCategories())),
+          BlocProvider(create: (context) => FilteredMealsBloc(mealBloc: context.read<MealBloc>(), filtersBloc: context.read<FiltersBloc>())),
+          BlocProvider(create: (context) => FavoriteMealsBloc()),
+          BlocProvider(create: (context) => TabBloc()),
+        ],
+        child: const App()));
 }
 
 class App extends StatelessWidget {
@@ -28,14 +40,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: theme,
-      home: MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (context) => TabBloc()),
-          BlocProvider(create: (context) => FavoriteBloc()),
-          BlocProvider(create: (context) => FilterBloc()),
-          BlocProvider(create: (context) => CategoriesBloc()),
-        ],
-        child: const TabsScreen()),
+      home: const TabsScreen(),
     );
   }
 }

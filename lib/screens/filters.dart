@@ -1,78 +1,30 @@
 import 'package:flutter/material.dart';
-// import 'package:meals/screens/tabs.dart';
-// import 'package:meals/widgets/main_drawer.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meals/features/filter/filter_bloc.dart';
+import 'package:meals/features/filter/filter_event.dart';
+import 'package:meals/features/filter/filter_state.dart';
 
-enum Filter{
-  glutenFree,
-  lactoseFree,
-  vegetarian,
-  vegan,
-}
-
-class FiltersScreen extends StatefulWidget {
-  const FiltersScreen({super.key, required this.currentFilters});
-
-  final Map<Filter, bool> currentFilters;
-
-  @override
-  State<FiltersScreen> createState() {
-    return _FiltersScreenState();
-  }
-}
-
-class _FiltersScreenState extends State<FiltersScreen> {
-  var _glutenFreeFilterSet = false;
-  var _lactoseFreeFilterSet = false;
-  var _vegetarianFilterSet = false;
-  var _veganFilterSet = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _glutenFreeFilterSet = widget.currentFilters[Filter.glutenFree]!;
-    _lactoseFreeFilterSet = widget.currentFilters[Filter.lactoseFree]!;
-    _vegetarianFilterSet = widget.currentFilters[Filter.vegetarian]!;
-    _veganFilterSet = widget.currentFilters[Filter.vegan]!;
-  }
+class FiltersScreen extends StatelessWidget {
+  const FiltersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Your Filters',
-          ),
-        ),
-        // drawer: MainDrawer(onSelectScreen: (indentifier) {
-        //   Navigator.of(context).pop();
-        //   if (indentifier == 'meals') {
-        //     //Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const TabsScreen(),),);
-        //     Navigator.of(context).push(
-        //       MaterialPageRoute(
-        //         builder: (ctx) => const TabsScreen(),
-        //       ),
-        //     );
-        //   }
-        // }),
-        body: PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (bool didPop, dynamic result) {
-            if (didPop) return;
-            Navigator.of(context).pop({
-              Filter.glutenFree: _glutenFreeFilterSet,
-              Filter.lactoseFree: _lactoseFreeFilterSet,
-              Filter.vegetarian: _vegetarianFilterSet,
-              Filter.vegan: _veganFilterSet,
-            });
-          },
-          child: Column(
+      appBar: AppBar(
+        title: const Text('Your Filters'),
+      ),
+      body: BlocBuilder<FiltersBloc, FiltersState>(
+        builder: (context, state) {
+          final activeFilters = state.filters;
+          print(activeFilters);
+          return Column(
             children: [
               SwitchListTile(
-                value: _glutenFreeFilterSet,
+                value: activeFilters[Filter.glutenFree]!,
                 onChanged: (isChecked) {
-                  setState(() {
-                    _glutenFreeFilterSet = isChecked;
-                  });
+                  context
+                      .read<FiltersBloc>()
+                      .add(SetFilter(Filter.glutenFree, isChecked));
                 },
                 title: Text(
                   'Gluten-free',
@@ -93,11 +45,11 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 ),
               ),
               SwitchListTile(
-                value: _lactoseFreeFilterSet,
+                value: activeFilters[Filter.lactoseFree]!,
                 onChanged: (isChecked) {
-                  setState(() {
-                    _lactoseFreeFilterSet = isChecked;
-                  });
+                  context
+                      .read<FiltersBloc>()
+                      .add(SetFilter(Filter.lactoseFree, isChecked));
                 },
                 title: Text(
                   'Lactose-free',
@@ -118,11 +70,11 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 ),
               ),
               SwitchListTile(
-                value: _vegetarianFilterSet,
+                value: activeFilters[Filter.vegetarian]!,
                 onChanged: (isChecked) {
-                  setState(() {
-                    _vegetarianFilterSet = isChecked;
-                  });
+                  context
+                      .read<FiltersBloc>()
+                      .add(SetFilter(Filter.vegetarian, isChecked));
                 },
                 title: Text(
                   'Vegetarian',
@@ -143,11 +95,11 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 ),
               ),
               SwitchListTile(
-                value: _veganFilterSet,
+                value: activeFilters[Filter.vegan]!,
                 onChanged: (isChecked) {
-                  setState(() {
-                    _veganFilterSet = isChecked;
-                  });
+                  context
+                      .read<FiltersBloc>()
+                      .add(SetFilter(Filter.vegan, isChecked));
                 },
                 title: Text(
                   'Vegan',
@@ -168,8 +120,9 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      );
+          );
+        },
+      ),
+    );
   }
 }

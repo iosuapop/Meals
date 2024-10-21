@@ -1,11 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'tab_event.dart';
-import 'tab_state.dart';
+import 'package:meals/features/tab/tab_event.dart';
+import 'package:meals/features/tab/tab_state.dart';
 
-class TabBloc extends Bloc<TabEvent, TabState>{
-  TabBloc() : super(const TabState(selectedIndex: 0)) {
+
+class TabBloc extends Bloc<TabEvent, TabState> {
+  TabBloc() : super(const TabState()) {
     on<TabChanged>((event, emit) {
-      emit(TabState(selectedIndex: event.tabIndex));
+      emit(TabState(selectedTabIndex: event.tabIndex));
     });
   }
 }
