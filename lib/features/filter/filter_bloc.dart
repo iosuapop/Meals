@@ -5,16 +5,20 @@ import 'package:meals/features/filter/filter_state.dart';
 
 class FiltersBloc extends Bloc<FilterEvent, FiltersState> {
   FiltersBloc() : super(const FiltersState()) {
-    on<SetFilter>((event, emit) {
+    on<SetFilter>(_onSetFilter);
+
+    on<SetAllFilters>(_onSetAllFilters);
+  }
+
+  void _onSetFilter(SetFilter event, Emitter<FiltersState> emit) {
       final updatedFilters = {
         ...state.filters,
         event.filter: event.isActive,
       };
       emit(state.copyWith(updatedFilters));
-    });
+    }
 
-    on<SetAllFilters>((event, emit) {
+  void _onSetAllFilters(SetAllFilters event, Emitter<FiltersState> emit) {
       emit(state.copyWith(event.filters));
-    });
-  }
+    }  
 }

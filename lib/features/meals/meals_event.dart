@@ -4,6 +4,6 @@ abstract class MealEvent{
   List<Object> get props => [];
 }
 
-class LoadMeals extends MealEvent {
-  const LoadMeals();
+class LoadDish extends MealEvent {
+  const LoadDish();
 }

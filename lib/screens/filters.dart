@@ -16,7 +16,6 @@ class FiltersScreen extends StatelessWidget {
       body: BlocBuilder<FiltersBloc, FiltersState>(
         builder: (context, state) {
           final activeFilters = state.filters;
-          print(activeFilters);
           return Column(
             children: [
               SwitchListTile(

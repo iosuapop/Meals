@@ -4,6 +4,8 @@ import 'package:meals/features/categories/categories_bloc.dart';
 import 'package:meals/features/categories/categories_state.dart';
 import 'package:meals/features/filteredmeals/filteredmeals_bloc.dart';
 import 'package:meals/features/filteredmeals/filteredmeals_state.dart';
+import 'package:meals/features/mealscreen/mealsscreen_bloc.dart';
+import 'package:meals/features/mealscreen/mealsscreen_event.dart';
 import 'package:meals/screens/meals.dart';
 import 'package:meals/widgets/category_grid_item.dart';
 
@@ -15,13 +17,11 @@ class CategoriesScreen extends StatelessWidget {
     return BlocBuilder<CategoryBloc, CategoryState>(
         builder: (context, categoryState) {
       if (categoryState.categories.isEmpty) {
-        print(categoryState.categories);
         return const Center(child: CircularProgressIndicator());
       }
       return BlocBuilder<FilteredMealsBloc, FilteredMealsState>(
           builder: (context, filteredMealsState) {
         final availableMeals = filteredMealsState.filteredMeals;
-        print(categoryState.categories);
         return GridView(
           padding: const EdgeInsets.all(
             24,
@@ -37,13 +37,22 @@ class CategoriesScreen extends StatelessWidget {
               CategoryGridItem(
                 category: category,
                 onSelectCategory: () {
+                  final mealsScreenBloc =
+                      BlocProvider.of<MealsScreenBloc>(context);
+
+                  mealsScreenBloc.add(
+                    LoadMeals(
+                      title: category.title,
+                      category: category,
+                      meals: availableMeals,
+                    ),
+                  );
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (ctx) => MealsScreen(
-                        title: category.title,
-                        meals: availableMeals,
-                      ),
-                    ),
+                        builder: (ctx) => BlocProvider.value(
+                              value: mealsScreenBloc,
+                              child: const MealsScreen(),
+                            )),
                   );
                 },
               ),

@@ -8,6 +8,8 @@ import 'package:meals/features/filter/filter_bloc.dart';
 import 'package:meals/features/filteredmeals/filteredmeals_bloc.dart';
 import 'package:meals/features/meals/meals_bloc.dart';
 import 'package:meals/features/meals/meals_event.dart';
+import 'package:meals/features/mealscreen/mealsscreen_bloc.dart';
+import 'package:meals/features/mealsdetails/mealsdetails_bloc.dart';
 import 'package:meals/features/tab/tab_bloc.dart';
 import 'package:meals/screens/tabs.dart';
 
@@ -23,9 +25,11 @@ final theme = ThemeData(
 void main() {
   runApp(MultiBlocProvider(
         providers: [
-          BlocProvider(create: (context) => MealBloc()..add(const LoadMeals())),
+          BlocProvider(create: (context) => MealBloc()..add(const LoadDish())),
           BlocProvider(create: (context) => FiltersBloc()),
           BlocProvider(create: (context) => CategoryBloc()..add(const LoadCategories())),
+          BlocProvider(create: (context) => MealsScreenBloc()),
+          BlocProvider(create: (context) => MealDetailsBloc()),
           BlocProvider(create: (context) => FilteredMealsBloc(mealBloc: context.read<MealBloc>(), filtersBloc: context.read<FiltersBloc>())),
           BlocProvider(create: (context) => FavoriteMealsBloc()),
           BlocProvider(create: (context) => TabBloc()),

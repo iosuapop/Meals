@@ -20,15 +20,9 @@ class FilteredMealsBloc extends Bloc<FilteredMealsEvent, FilteredMealsState> {
       add(UpdateFilters(filterState.filters));
     });
 
-    on<UpdateMeals>((event, emit) {
-      allMeals = event.meals;
-      _applyFilters(emit, state.filters);
-    });
+    on<UpdateMeals>(_onUpdateMeals);
 
-    on<UpdateFilters>((event, emit) {
-      currentFilters = event.filters;
-      _applyFilters(emit, event.filters);
-    });
+    on<UpdateFilters>(_onUpdateFilters);
   }
 
   void _applyFilters(Emitter<FilteredMealsState> emit, Map<Filter, bool> filters) {
@@ -50,4 +44,14 @@ class FilteredMealsBloc extends Bloc<FilteredMealsEvent, FilteredMealsState> {
 
     emit(FilteredMealsState(filteredMeals: filteredMeals, filters: filters));
   }
+
+  void _onUpdateMeals(UpdateMeals event, Emitter<FilteredMealsState> emit) {
+      allMeals = event.meals;
+      _applyFilters(emit, state.filters);
+    }
+
+  void _onUpdateFilters(UpdateFilters event, Emitter<FilteredMealsState> emit) {
+      currentFilters = event.filters;
+      _applyFilters(emit, event.filters);
+    }
 }

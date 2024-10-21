@@ -6,8 +6,10 @@ import 'package:meals/features/meals/meals_state.dart';
 
 class MealBloc extends Bloc<MealEvent, MealState> {
   MealBloc() : super(const MealState()) {
-    on<LoadMeals>((event, emit) {
-      emit(const MealState(meals: dummyMeals));
-    });
+    on<LoadDish>(_onLoadDish);
   }
+
+  void _onLoadDish(LoadDish event, Emitter<MealState> emit) {
+      emit(const MealState(meals: dummyMeals));
+    }
 }

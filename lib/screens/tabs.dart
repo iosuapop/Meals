@@ -4,6 +4,8 @@ import 'package:meals/features/favorite/favorite_bloc.dart';
 import 'package:meals/features/favorite/favorite_state.dart';
 import 'package:meals/features/filteredmeals/filteredmeals_bloc.dart';
 import 'package:meals/features/filteredmeals/filteredmeals_state.dart';
+import 'package:meals/features/mealscreen/mealsscreen_bloc.dart';
+import 'package:meals/features/mealscreen/mealsscreen_event.dart';
 import 'package:meals/features/tab/tab_bloc.dart';
 import 'package:meals/features/tab/tab_event.dart';
 import 'package:meals/features/tab/tab_state.dart';
@@ -14,17 +16,6 @@ import 'package:meals/widgets/main_drawer.dart';
 
 class TabsScreen extends StatelessWidget {
   const TabsScreen({super.key});
-
-  void _setScreen(BuildContext context, String identifier) async {
-    Navigator.of(context).pop();
-    if (identifier == 'filters') {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) => const FiltersScreen(),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,21 +30,31 @@ class TabsScreen extends StatelessWidget {
         ),
       ),
       drawer: MainDrawer(
-        onSelectScreen: (identifier) => _setScreen(context, identifier),
+        onSelectScreen: (identifier) {
+          Navigator.of(context).pop();
+          if(identifier == 'filters'){
+          Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (ctx) => const FiltersScreen(),
+        ));
+          }
+        },
       ),
       body: BlocBuilder<TabBloc, TabState>(builder: (context, state) {
         if (state.selectedTabIndex == 0) {
           return BlocBuilder<FilteredMealsBloc, FilteredMealsState>(
               builder: (context, filteredMealsState) {
-                print(filteredMealsState.filteredMeals);
                 return const CategoriesScreen();
               },
             );
         } else {
           return BlocBuilder<FavoriteMealsBloc, FavoriteMealsState>(
               builder: (context, favoriteMealsState) {
-                print(favoriteMealsState.favoriteMeals);
-                return MealsScreen(meals: favoriteMealsState.favoriteMeals);
+                final favoriteMeals = favoriteMealsState.favoriteMeals;
+                return BlocProvider(
+      create: (context) => MealsScreenBloc()
+        ..add(LoadFavorites(meals: favoriteMeals)),
+      child: const MealsScreen(),);
               },
             );
         }
