@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:meals_fb_bloc/models/category.dart';
-import 'package:meals_fb_bloc/models/meal.dart';
+import 'package:meals/models/category.dart';
+import 'package:meals/models/meal.dart';
 
 
 abstract class TabState extends Equatable {
@@ -24,16 +24,10 @@ class TabLoadedState extends TabState {
     required this.meals,
     required this.indexPage,
   });
-
-  @override
-  List<Object?> get props => [categories, meals, indexPage];
 }
 
 class TabErrorState extends TabState {
   final String errorMessage;
 
   const TabErrorState(this.errorMessage);
-
-  @override
-  List<Object?> get props => [errorMessage];
 }

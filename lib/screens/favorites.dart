@@ -1,26 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:meals_fb_bloc/bloc/favorite/favorite_bloc.dart';
-import 'package:meals_fb_bloc/bloc/favorite/favorite_state.dart';
-import 'package:meals_fb_bloc/models/meal.dart';
-import 'package:meals_fb_bloc/screens/meal_details.dart';
-import 'package:meals_fb_bloc/widgets/meal_item.dart';
+import 'package:meals/bloc/favorite/favorite_bloc.dart';
+import 'package:meals/bloc/favorite/favorite_state.dart';
+import 'package:meals/models/meal.dart';
+import 'package:meals/screens/meal_details.dart';
+import 'package:meals/widgets/meal_item.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({
     super.key,
   });
-
-  // void selectMeal(BuildContext context, Meal meal) {
-  //   Navigator.of(context).push(
-  //     MaterialPageRoute(
-  //       builder: (ctx) => MealDetailsScreen(
-  //         meal: meal,
-
-  //       ),
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +60,9 @@ class FavoritesScreen extends StatelessWidget {
               },
             ),
           );
+        }
+        else if(state is FavoriteErrorState){
+          return Center(child: Text('eroare : ${state.errorMessage}'),);
         }
         return const Center(child: CircularProgressIndicator());
       },

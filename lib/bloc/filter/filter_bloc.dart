@@ -1,13 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:meals_fb_bloc/bloc/filter/filter_event.dart';
-import 'package:meals_fb_bloc/bloc/filter/filter_state.dart';
+import 'package:meals/bloc/filter/filter_event.dart';
+import 'package:meals/bloc/filter/filter_state.dart';
 
 enum Filter { vegan, vegetarian, glutenFree, lactoseFree }
+
+final FirebaseFirestore firestore = FirebaseFirestore.instance;
+final CollectionReference filtersCollection = firestore.collection('filters');
 
 class FiltersBloc extends Bloc<FiltersEvent, FiltersState> {
   FiltersBloc() : super(const FiltersInitialState()) {
     on<FetchFiltersEvent>(_onFetchFilters);
+    on<UpdateFilterEvent>(_onUpdateFilter);
     on<UpdateFiltersEvent>(_onUpdateFilters);
   }
 
@@ -15,48 +19,46 @@ class FiltersBloc extends Bloc<FiltersEvent, FiltersState> {
       FetchFiltersEvent event, Emitter<FiltersState> emit) async {
     try {
       final filters = await fetchFiltersFromDatabase();
-      print('Fintre fetch: $filters');
+      if (filters.isEmpty) {
+  emit(const FiltersErrorState(errorMessage: 'No filters found in the database'));
+} else {
       emit(FiltersUpdatedState(
         isVegan: filters[Filter.vegan] ?? false,
         isVegetarian: filters[Filter.vegetarian] ?? false,
         isGlutenFree: filters[Filter.glutenFree] ?? false,
         isLactoseFree: filters[Filter.lactoseFree] ?? false,
       ));
-    } catch (e) {
-      print('Error fetching filters from database: $e');
+    }}catch (e) {
+      print('Error fetching filters');
       emit(FiltersErrorState(errorMessage: 'Failed to fetch filters: $e'));
     }
   }
 
-  void _onUpdateFilters(
-      UpdateFiltersEvent event, Emitter<FiltersState> emit) async {
-    final newState = FiltersUpdatedState(
-      isVegan: event.isVegan ?? state.isVegan,
+  void _onUpdateFilter(
+      UpdateFilterEvent event, Emitter<FiltersState> emit) {
+    emit(FiltersUpdatedState(
+      isVegan: event.isVegan?? state.isVegan,
       isVegetarian: event.isVegetarian ?? state.isVegetarian,
       isGlutenFree: event.isGlutenFree ?? state.isGlutenFree,
       isLactoseFree: event.isLactoseFree ?? state.isLactoseFree,
-    );
+    ));
+  }
 
+  void _onUpdateFilters(UpdateFiltersEvent event, Emitter<FiltersState> emit) async {
     try {
       await modifyFiltersInDatabase({
-        Filter.vegan: newState.isVegan,
-        Filter.vegetarian: newState.isVegetarian,
-        Filter.glutenFree: newState.isGlutenFree,
-        Filter.lactoseFree: newState.isLactoseFree,
+        Filter.vegan: state.isVegan,
+        Filter.vegetarian: state.isVegetarian,
+        Filter.glutenFree: state.isGlutenFree,
+        Filter.lactoseFree: state.isLactoseFree,
       });
-      emit(newState);
-
     } catch (e) {
-      print('Error fetching filters from database: $e');
-      emit(FiltersErrorState(errorMessage: 'Failed to update filters: $e'));
+      print('Error modifying filters');
+      emit(const FiltersErrorState(errorMessage: 'Failed to update filters'));
     }
   }
 
   Future<Map<Filter, bool>> fetchFiltersFromDatabase() async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    final CollectionReference filtersCollection =
-        firestore.collection('filters');
-
     final QuerySnapshot snapshot = await filtersCollection.get();
 
     Map<Filter, bool> filters = {};
@@ -75,10 +77,6 @@ class FiltersBloc extends Bloc<FiltersEvent, FiltersState> {
   }
 
   Future<void> modifyFiltersInDatabase(Map<Filter, bool> filters) async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    final CollectionReference filtersCollection =
-        firestore.collection('filters');
-
     for (var entry in filters.entries) {
       final filterName = entry.key.toString().split('.').last;
       final filterValue = entry.value;

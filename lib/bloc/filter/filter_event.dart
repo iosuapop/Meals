@@ -7,21 +7,25 @@ abstract class FiltersEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class UpdateFiltersEvent extends FiltersEvent {
+class LoadingFilters extends FiltersEvent{}
+
+class UpdateFilterEvent extends FiltersEvent {
   final bool? isVegan;
   final bool? isVegetarian;
   final bool? isGlutenFree;
   final bool? isLactoseFree;
 
-  const UpdateFiltersEvent({
+  const UpdateFilterEvent({
     this.isVegan,
     this.isVegetarian,
     this.isGlutenFree,
     this.isLactoseFree,
   });
-
+  
   @override
-  List<Object?> get props => [isVegan, isVegetarian, isGlutenFree, isLactoseFree];
+  List<Object?> get props => [isVegan, isVegetarian,isGlutenFree, isLactoseFree];
 }
+
+class UpdateFiltersEvent extends FiltersEvent{}
 
 class FetchFiltersEvent extends FiltersEvent {}

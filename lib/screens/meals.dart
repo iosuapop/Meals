@@ -1,76 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:meals/models/meal.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meals/bloc/favorite/favorite_bloc.dart';
+import 'package:meals/bloc/tab/tab_bloc.dart';
+import 'package:meals/bloc/tab/tab_state.dart';
 import 'package:meals/screens/meal_details.dart';
 import 'package:meals/widgets/meal_item.dart';
 
 class MealsScreen extends StatelessWidget {
   const MealsScreen({
     super.key,
-    this.title,
-    required this.meals,
-    required this.onToggleFavorite,
   });
-
-  final String? title;
-  final List<Meal> meals;
-  final void Function(Meal meal) onToggleFavorite;
-
-  void selectMeal(BuildContext context, Meal meal) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => MealDetailsScreen(
-          meal: meal,
-          onToggleFavorite: onToggleFavorite,
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Uh oh ... nothing here',
-              style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              'Try selecting a different category',
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
-            ),
-          ],
-        ),
-      );
-
-    if (meals.isNotEmpty) {
-      content = ListView.builder(
-        itemCount: meals.length,
-        itemBuilder: (ctx, index) => MealItem(
-              meal: meals[index],
-              onSelectMeal: (meal) {
-                selectMeal(context, meal);
-              },
-            ),
-          );
-      }
-
-    if(title == null){
-      return content;
-    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(title!),
+        title: const Text('Meals'),
       ),
-      body: content,
+      body: BlocBuilder<TabBloc, TabState>(
+        builder: (context, state) {
+          if (state is TabLoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is TabLoadedState) {
+            final meals = state.meals;
+            if (meals.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Uh oh ... nothing here',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineLarge!
+                          .copyWith(
+                            color: Theme.of(context).colorScheme.onBackground,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Try selecting a different category',
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onBackground,
+                          ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return ListView.builder(
+              itemCount: meals.length,
+              itemBuilder: (ctx, index) {
+                final meal = meals[index];
+
+                return MealItem(
+                  meal: meal,
+                  onSelectMeal: (meal) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (ctx) => BlocProvider.value(
+                          value: BlocProvider.of<FavoriteBloc>(context),
+                          child: MealDetailsScreen(meal: meal),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          } else {
+            if(state is TabErrorState)
+            return Center(child: Text('eroare : ${state.errorMessage}'),);
+          }
+          return const Center(child: Text('Something went wrong.'),);
+        },
+      ),
     );
   }
 }

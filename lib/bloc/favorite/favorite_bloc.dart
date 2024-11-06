@@ -1,14 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:meals_fb_bloc/bloc/favorite/favorite_event.dart';
-import 'package:meals_fb_bloc/bloc/favorite/favorite_state.dart';
-import 'package:meals_fb_bloc/models/meal.dart';
+import 'package:meals/bloc/favorite/favorite_event.dart';
+import 'package:meals/bloc/favorite/favorite_state.dart';
+import 'package:meals/models/meal.dart';
+
+final FirebaseFirestore firestore = FirebaseFirestore.instance;
+final CollectionReference favoritesCollection = firestore.collection('favorites');
+final CollectionReference mealsCollection = firestore.collection('meals');
 
 class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
   FavoriteBloc() : super(FavoriteInitialState()) {
     on<LoadFavoritesEvent>(_onLoadFavorites);
-    on<AddFavoriteEvent>(_onAddFavorite);
-    on<RemoveFavoriteEvent>(_onRemoveFavorite);
+    on<ModifyFavoriteEvent>(_onModifyFavorite);
   }
 
   Future<void> _onLoadFavorites(LoadFavoritesEvent event, Emitter<FavoriteState> emit) async {
@@ -16,51 +19,47 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
 
     try {
       final favoriteMeals = await fetchFavoriteMeals();
-      print('Fetcj favorite: $favoriteMeals');
+      if(favoriteMeals != null){
+        print('Fetch favorite: $favoriteMeals');
       emit(FavoriteLoadedState(favoriteMeals));
+      }
+      else{
+        emit(const FavoriteErrorState("A aparut o eroare in incarcarea datelor, inccearca mai tarziu."));
+      }
     } catch (e) {
-      print('Eroare $e');
+      print('eroare on load');
       emit(FavoriteErrorState('Failed to load favorite meals: $e'));
     }
   }
 
 
-  Future<void> _onAddFavorite(AddFavoriteEvent event, Emitter<FavoriteState> emit) async {
+  Future<void> _onModifyFavorite(ModifyFavoriteEvent event, Emitter<FavoriteState> emit) async {
     if (state is FavoriteLoadedState) {
-      //final currentState = state as FavoriteLoadedState;
-      //final updatedFavoriteMeals = List<Meal>.from(currentState.favoriteMeals);
-
       try {
-        await addMealToFavorites(event.mealId);
-
+        final currentState = state as FavoriteLoadedState;
+        if(currentState.favoriteMeals.any((meal) => meal.id == event.mealId)){
+          deleteMealFromFavorites(event.mealId);
+        }
+        else{
+          addMealToFavorites(event.mealId);
+        }
+        
         final newFavoriteMeals = await fetchFavoriteMeals();
-        emit(FavoriteLoadedState(newFavoriteMeals));
+        if(newFavoriteMeals != null){
+        print('Fetch favorite: $newFavoriteMeals');
+      emit(FavoriteLoadedState(newFavoriteMeals));
+      }
+      else{
+        emit(const FavoriteErrorState("A aparut o eroare la modificare, inccearca mai tarziu."));
+      }
       } catch (e) {
+        print('eroare on modify');
         emit(FavoriteErrorState('Failed to add favorite meal: $e'));
       }
     }
   }
 
-
-  Future<void> _onRemoveFavorite(RemoveFavoriteEvent event, Emitter<FavoriteState> emit) async {
-    if (state is FavoriteLoadedState) {
-      try {
-        await deleteMealFromFavorites(event.mealId);
-
-        // După ștergere, reîncărcăm lista
-        final updatedFavoriteMeals = await fetchFavoriteMeals();
-        emit(FavoriteLoadedState(updatedFavoriteMeals));
-      } catch (e) {
-        emit(FavoriteErrorState('Failed to remove favorite meal: $e'));
-      }
-    }
-  }
-
-  Future<List<Meal>> fetchFavoriteMeals() async {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final CollectionReference favoritesCollection = firestore.collection('favorites');
-  final CollectionReference mealsCollection = firestore.collection('meals');
-
+  Future<List<Meal>?> fetchFavoriteMeals() async {
   try {
     final QuerySnapshot favoritesSnapshot = await favoritesCollection.get();
     List<String> favoriteMealIds = favoritesSnapshot.docs
@@ -81,18 +80,15 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
         favoriteMeals.add(Meal.fromMap(mealSnapshot.data() as Map<String, dynamic>));
       }
     }
-
-    print('Number of favorite meals fetched: ${favoriteMeals.length}');
     return favoriteMeals;
+
   } catch (e) {
-    print('Failed to fetch favorite meals: $e');
-    return [];
+    print('eroare on fetch');
+    return null;
   }
 }
 
 Future<void> addMealToFavorites(String mealId) async {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
   try {
     await firestore.collection('favorites').add({
       'mealId': mealId,
@@ -104,12 +100,8 @@ Future<void> addMealToFavorites(String mealId) async {
 }
 
 Future<void> deleteMealFromFavorites(String mealId) async {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final CollectionReference favoritesCollection = firestore.collection('favorites');
-
   try {
     QuerySnapshot snapshot = await favoritesCollection.where('mealId', isEqualTo: mealId).get();
-
     for (var doc in snapshot.docs) {
       await favoritesCollection.doc(doc.id).delete();
       print('Meal removed from favorites: $mealId');

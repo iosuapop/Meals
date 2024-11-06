@@ -1,49 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:meals/data/dummy_data.dart';
-import 'package:meals/models/meal.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meals/bloc/favorite/favorite_bloc.dart';
+import 'package:meals/bloc/tab/tab_bloc.dart';
+import 'package:meals/bloc/tab/tab_event.dart';
+import 'package:meals/bloc/tab/tab_state.dart';
 import 'package:meals/screens/meals.dart';
 import 'package:meals/widgets/category_grid_item.dart';
-import 'package:meals/models/category.dart';
 
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({super.key, required this.onToggleFavorite, required this.availableMeals});
-
-  final void Function(Meal meal) onToggleFavorite;
-  final List<Meal> availableMeals;
-
-  void _selectCategory(BuildContext context, Category category) {
-    final filteredMeals = availableMeals.where((meal) => meal.categories.contains(category.id)).toList();
-    //Navigator.push(context, route);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => MealsScreen(
-          title: category.title,
-          meals: filteredMeals,
-          onToggleFavorite: onToggleFavorite,
-        ),
-      ),
-    );
-  }
+  const CategoriesScreen({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GridView(
-        padding: const EdgeInsets.all(
-          24,
-        ),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3 / 2,
-          crossAxisSpacing: 20,
-          mainAxisSpacing: 20,
-        ),
-        children: [
-          // availableCategories.map((category) => CCategoryGridItem(category: category)).toList();
-          for (final category in availableCategories)
-            CategoryGridItem(category: category, onSelectCategory: () {
-              _selectCategory(context, category);
-            },),
-        ],
-      );
+    return BlocBuilder<TabBloc, TabState>(builder: (context, state) {
+      if (state is TabLoadedState) {
+        final categories = state.categories;
+        return GridView(
+          padding: const EdgeInsets.all(
+            24,
+          ),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 3 / 2,
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+          ),
+          children: [
+            for (final category in categories)
+              CategoryGridItem(
+                category: category,
+                onSelectCategory: () {
+                  context.read<TabBloc>().add(FilterMealsByCategoryEvent(category.id));
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (ctx) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(
+                            value: BlocProvider.of<TabBloc>(context)),
+                        BlocProvider.value(
+                            value: BlocProvider.of<FavoriteBloc>(context)),
+                      ],
+                      child: const MealsScreen(),
+                    ),
+                  ));
+                },
+              ),
+          ],
+        );
+      }
+      else if(state is TabErrorState)
+      {
+        return Center(child: Text('eroare : ${state.errorMessage}'),);
+      }
+      return const Center(child: CircularProgressIndicator());
+    });
   }
 }

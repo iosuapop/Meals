@@ -9,19 +9,10 @@ abstract class FavoriteEvent extends Equatable {
 
 class LoadFavoritesEvent extends FavoriteEvent {}
 
-class AddFavoriteEvent extends FavoriteEvent {
+class ModifyFavoriteEvent extends FavoriteEvent {
   final String mealId;
 
-  const AddFavoriteEvent(this.mealId);
-
-  @override
-  List<Object?> get props => [mealId];
-}
-
-class RemoveFavoriteEvent extends FavoriteEvent {
-  final String mealId;
-
-  const RemoveFavoriteEvent(this.mealId);
+  const ModifyFavoriteEvent(this.mealId);
 
   @override
   List<Object?> get props => [mealId];

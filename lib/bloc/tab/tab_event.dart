@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:meals_fb_bloc/bloc/tab/tab_bloc.dart';
-import 'package:meals_fb_bloc/models/meal.dart';
+import 'package:meals/bloc/tab/tab_bloc.dart';
+import 'package:meals/models/meal.dart';
 
 abstract class TabEvent extends Equatable {
   const TabEvent();
@@ -15,9 +15,6 @@ class ChangePageIndexEvent extends TabEvent {
   final int newIndex;
 
   const ChangePageIndexEvent(this.newIndex);
-
-  @override
-  List<Object?> get props => [newIndex];
 }
 
 class UpdateFilteredMealsEvent extends TabEvent {
